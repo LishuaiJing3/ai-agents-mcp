@@ -192,3 +192,50 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+
+
+# Rust
+# Compiled files
+*.rlib
+*.rmeta
+*.dll
+*.so
+*.dylib
+*.exe
+
+# Cargo package files
+/target/
+**/target/
+Cargo.lock
+
+# Rust/Cargo specific files
+/.cargo/
+.cargo/
+*.crate
+
+# Rust build scripts output
+build.rs
+
+# Rust coverage/debug/test
+/coverage/
+*.profraw
+*.profdata
+
+# Rust language server
+.rustup/
+.rustc_info.json
+
+# Rust Analyzer
+/.rust-analyzer.json
+
+# Rustfmt
+rustfmt.toml
+
+# Clippy lints
+clippy.toml
+
+# Cbindgen
+cbindgen.toml
+
+# Ignore VSCode Rust extension settings (if not already ignored)
+.vscode/
