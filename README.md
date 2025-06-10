@@ -18,6 +18,7 @@ A demonstration project for using MCP (Modal Context Protocol) with AI agents, f
 - [Testing](#testing)
 - [License](#license)
 - [Contributing](#contributing)
+- [Using MCP with LangGraph Agents: stdio vs SSE (streamable-http)](#using-mcp-with-langgraph-agents-stdio-vs-sse-streamable-http)
 
 ---
 
@@ -79,7 +80,7 @@ cd mcp-python-client
 uv init
 uv pip install -r requirements.txt  # If requirements.txt exists
 uv add pkg # add pkg
-uv install     # install dpendencies 
+uv sync     # update project env
 ```
 
 ### 3. Set Up Rust Server
@@ -190,3 +191,72 @@ For questions or support, please open an issue in this repository.
 - [ ] Improve documentation with architecture diagrams
 - [ ] Add CI/CD pipeline for automated testing and deployment
 - [ ] Provide example agents with real-world tasks
+
+---
+
+## Using MCP with LangGraph Agents: stdio vs SSE (streamable-http)
+
+This project supports two ways to connect AI agents to MCP servers: **stdio** and **SSE (streamable-http)**. Each method is suited for different use cases and environments.
+
+### What is the difference?
+- **stdio**: Runs the MCP server as a subprocess and communicates via standard input/output. Best for local, single-process, or quick prototyping.
+- **SSE (streamable-http)**: Runs the MCP server as a web service (HTTP + Server-Sent Events). Best for distributed, production, or multi-client scenarios.
+
+---
+
+## Examples
+
+### 1. Using stdio (local subprocess)
+
+**Start the MCP server (stdio):**
+
+```sh
+cd mcp-python-server-client
+uv run python src/stdio_server.py
+```
+
+**Run the LangGraph agent client (stdio):**
+
+```sh
+cd mcp-python-server-client
+uv run python src/langgraph_stdio_demo.py
+```
+
+- The client will launch the server as a subprocess and communicate via stdio.
+- Fast and simple for local development.
+
+---
+
+### 2. Using SSE / streamable-http (web server)
+
+**Start the MCP server (SSE):**
+
+```sh
+cd mcp-python-server-client
+uv run python src/sse_server.py
+```
+
+- This starts a web server at `http://127.0.0.1:8000/mcp`.
+
+**Run the LangGraph agent client (SSE):**
+
+```sh
+cd mcp-python-server-client
+uv run python src/langgraph_sse_demo.py
+```
+
+- The client connects to the running web server using HTTP streaming (SSE).
+- Suitable for remote, distributed, or multi-user scenarios.
+
+---
+
+## When to use which?
+- Use **stdio** for local, single-user, or quick experiments.
+- Use **SSE (streamable-http)** for scalable, networked, or production deployments.
+
+See `src/stdio_server.py`, `src/langgraph_stdio_demo.py`, `src/sse_server.py`, and `src/langgraph_sse_demo.py` for full code examples.
+
+
+
+cargo run --release --bin mcp-stdio
+cargo run --release --bin mcp-sse
