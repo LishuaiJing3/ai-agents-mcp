@@ -21,6 +21,8 @@ async def main():
             # Call the 'reverse' tool
             reverse_result = await session.call_tool("reverse", {"text": "hello"})
             print("Reverse result:", reverse_result)
+            """
+            # TODO: these needs to valided with rust-mcp-server which may not be implemented yet
             # List resources
             resources = await session.list_resources()
             print("Resources:", resources)
@@ -36,5 +38,6 @@ async def main():
             # Call the 'summarize' prompt
             summary = await session.get_prompt("summarize", {"text": "This is a long text that should be summarized."})
             print("Summary:", summary)
+            """
 
 asyncio.run(main())
