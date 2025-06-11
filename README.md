@@ -1,35 +1,32 @@
 # ai-agents-mcp
 
-A demonstration project for using MCP (Modal Context Protocol) with AI agents, featuring both Python and Rust implementations of MCP servers and clients.
+A demonstration project for using MCP (Modal Context Protocol) with AI agents, featuring both Python and Rust implementations of MCP servers and clients. This project showcases interoperability and best practices for building agent communication systems.
 
 ---
 
 ## Table of Contents
-
 - [Overview](#overview)
 - [Project Structure](#project-structure)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
-  - [Running the Python MCP Server](#running-the-python-mcp-server)
-  - [Running the Rust MCP Server](#running-the-rust-mcp-server)
-  - [Running the Python Demo Client](#running-the-python-demo-client)
+  - [Running Locally](#running-locally)
+  - [Using Docker](#using-docker)
+  - [Using Docker Compose](#using-docker-compose)
 - [Examples](#examples)
 - [Testing](#testing)
-- [License](#license)
 - [Contributing](#contributing)
-- [Using MCP with LangGraph Agents: stdio vs SSE (streamable-http)](#using-mcp-with-langgraph-agents-stdio-vs-sse-streamable-http)
+- [License](#license)
+- [Contact](#contact)
+- [To Do](#to-do)
 
 ---
 
 ## Overview
 
 This repository provides demos for using MCP to facilitate communication between AI agents. It includes:
-
-- A Python-based MCP server and client ([mcp-python-client/src/](mcp-python-client/src/))
-- A Rust-based MCP server ([mcp-rust-server/src/](mcp-rust-server/src/))
-
-The goal is to showcase interoperability and best practices for building agent communication systems.
+- A Python-based MCP server and client (`mcp-python-server-client/`)
+- A Rust-based MCP server (`mcp-rust-server/`)
 
 ---
 
@@ -37,18 +34,20 @@ The goal is to showcase interoperability and best practices for building agent c
 
 ```
 .
-├── mcp-python-client/
+├── mcp-python-server-client/
 │   ├── src/
 │   │   ├── demo_client.py
 │   │   ├── demo_server.py
-│   │   └── mcp_py_client_rust_server.py
-│   └── ...
+│   │   ├── mcp_py_client_rust_server.py
+│   │   └── ...
 ├── mcp-rust-server/
 │   ├── src/
 │   │   ├── handler.rs
 │   │   ├── main.rs
+│   │   ├── main_sse.rs
 │   │   └── tools.rs
 │   └── ...
+├── docker-compose.yml
 ├── LICENSE
 └── README.md
 ```
@@ -56,35 +55,33 @@ The goal is to showcase interoperability and best practices for building agent c
 ---
 
 ## Prerequisites
-
 - [Python 3.11+](https://www.python.org/)
 - [Rust](https://www.rust-lang.org/tools/install)
-- [uv](https://github.com/astral-sh/uv) (Python package/dependency manager)
+- [uv](https://github.com/astral-sh/uv) (Python dependency manager)
 - [cargo](https://doc.rust-lang.org/cargo/) (Rust package manager)
+- [Docker](https://www.docker.com/) (for containerization)
 
 ---
 
 ## Installation
 
 ### 1. Install System Dependencies
-
 ```sh
 brew install uv
 brew install rust
+brew install docker
 ```
 
 ### 2. Set Up Python Environment
-
 ```sh
-cd mcp-python-client
+cd mcp-python-server-client
 uv init
 uv pip install -r requirements.txt  # If requirements.txt exists
-uv add pkg # add pkg
-uv sync     # update project env
+uv add <pkg>  # Add any additional packages
+uv sync       # Update project environment
 ```
 
 ### 3. Set Up Rust Server
-
 ```sh
 cd mcp-rust-server
 cargo build --release
@@ -94,33 +91,62 @@ cargo build --release
 
 ## Usage
 
-### Running the Python MCP Server
+### Running Locally
 
+#### Start the Python MCP Server
 ```sh
-cd mcp-python-client
-uv run mcp dev src/demo_server.py
+cd mcp-python-server-client
+uv run python src/demo_server.py
 ```
 
-### Running the Rust MCP Server
-
+#### Start the Rust MCP Server
 ```sh
 cd mcp-rust-server
-cargo run
+cargo run --release --bin mcp-sse
 ```
 
-### Running the Python Demo Client
-
+#### Run the Python Demo Client
 ```sh
-cd mcp-python-client
+cd mcp-python-server-client
 uv run python src/mcp_py_client_rust_server.py
 ```
 
 ---
 
+### Using Docker
+
+#### Build the Rust Server Docker Image
+```sh
+cd mcp-rust-server
+docker build -t mcp-sse-server-exp .
+```
+
+#### Run the Rust Server Container (map to a custom port, e.g., 8001)
+```sh
+docker run -p 8001:8000 mcp-sse-server-exp
+```
+- The server will be accessible at `http://127.0.0.1:8001/sse`.
+- Update your Python client to use this URL if running locally.
+
+---
+
+### Using Docker Compose
+
+#### Start the Rust Server with Docker Compose
+```sh
+docker compose up --build
+```
+- By default, this maps host port 8001 to container port 8000.
+- You can access the server at `http://127.0.0.1:8001/sse`.
+
+#### (Optional) Add the Python Client as a Service
+- You can extend `docker-compose.yml` to add the Python client as a service for full containerized workflows.
+
+---
+
 ## Examples
 
-### Example: Start Python Server and Client
-
+### Example: Start Python Server and Client Locally
 1. In one terminal, start the server:
     ```sh
     uv run mcp dev src/demo_server.py
@@ -130,33 +156,51 @@ uv run python src/mcp_py_client_rust_server.py
     uv run python src/demo_client.py
     ```
 
-### Example: Use Rust Server
-
+### Example: Use Rust Server Locally
 1. Build and run the Rust server:
     ```sh
     cd mcp-rust-server
     cargo build --release
-    cargo run
+    cargo run --release --bin mcp-sse
     ```
 2. Use the Python client to connect to the Rust server:
     ```sh
-    cd mcp-python-client
+    cd mcp-python-server-client
     uv run python src/mcp_py_client_rust_server.py
     ```
 
+### Example: Use Rust Server with Docker
+1. Build and run the Docker image:
+    ```sh
+    cd mcp-rust-server
+    docker build -t mcp-sse-server-exp .
+    docker run -p 8001:8000 mcp-sse-server-exp
+    ```
+2. Use the Python client (update the server URL to `http://127.0.0.1:8001/sse`):
+    ```sh
+    cd mcp-python-server-client
+    uv run python src/mcp_py_client_rust_server.py
+    ```
+
+### Example: Use Docker Compose
+1. From the project root, run:
+    ```sh
+    docker compose up --build
+    ```
+2. The Rust server will be available at `http://127.0.0.1:8001/sse`.
+
 ---
 
-## Testing (Coming)
+## Testing
 
 ### Python
 ```sh
-cd mcp-python-client
+cd mcp-python-server-client
 uv pip install pytest
 pytest
 ```
 
 ### Rust
-
 ```sh
 cd mcp-rust-server
 cargo test
@@ -164,26 +208,22 @@ cargo test
 
 ---
 
-## License
-
-This project is licensed under the [Apache License 2.0](LICENSE).
-
----
-
 ## Contributing
-
 Contributions are welcome! Please open issues or submit pull requests for improvements or bug fixes.
 
 ---
 
-## Contact
+## License
+This project is licensed under the [Apache License 2.0](LICENSE).
 
+---
+
+## Contact
 For questions or support, please open an issue in this repository.
 
 ---
 
 ## To Do
-
 - [ ] Add more comprehensive unit and integration tests for both Python and Rust implementations
 - [ ] Implement authentication and authorization for MCP servers
 - [ ] Provide Dockerfiles for easy deployment
@@ -191,72 +231,3 @@ For questions or support, please open an issue in this repository.
 - [ ] Improve documentation with architecture diagrams
 - [ ] Add CI/CD pipeline for automated testing and deployment
 - [ ] Provide example agents with real-world tasks
-
----
-
-## Using MCP with LangGraph Agents: stdio vs SSE (streamable-http)
-
-This project supports two ways to connect AI agents to MCP servers: **stdio** and **SSE (streamable-http)**. Each method is suited for different use cases and environments.
-
-### What is the difference?
-- **stdio**: Runs the MCP server as a subprocess and communicates via standard input/output. Best for local, single-process, or quick prototyping.
-- **SSE (streamable-http)**: Runs the MCP server as a web service (HTTP + Server-Sent Events). Best for distributed, production, or multi-client scenarios.
-
----
-
-## Examples
-
-### 1. Using stdio (local subprocess)
-
-**Start the MCP server (stdio):**
-
-```sh
-cd mcp-python-server-client
-uv run python src/stdio_server.py
-```
-
-**Run the LangGraph agent client (stdio):**
-
-```sh
-cd mcp-python-server-client
-uv run python src/langgraph_stdio_demo.py
-```
-
-- The client will launch the server as a subprocess and communicate via stdio.
-- Fast and simple for local development.
-
----
-
-### 2. Using SSE / streamable-http (web server)
-
-**Start the MCP server (SSE):**
-
-```sh
-cd mcp-python-server-client
-uv run python src/sse_server.py
-```
-
-- This starts a web server at `http://127.0.0.1:8000/mcp`.
-
-**Run the LangGraph agent client (SSE):**
-
-```sh
-cd mcp-python-server-client
-uv run python src/langgraph_sse_demo.py
-```
-
-- The client connects to the running web server using HTTP streaming (SSE).
-- Suitable for remote, distributed, or multi-user scenarios.
-
----
-
-## When to use which?
-- Use **stdio** for local, single-user, or quick experiments.
-- Use **SSE (streamable-http)** for scalable, networked, or production deployments.
-
-See `src/stdio_server.py`, `src/langgraph_stdio_demo.py`, `src/sse_server.py`, and `src/langgraph_sse_demo.py` for full code examples.
-
-
-
-cargo run --release --bin mcp-stdio
-cargo run --release --bin mcp-sse

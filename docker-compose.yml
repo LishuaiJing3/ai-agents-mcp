@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  rust-server:
+    build:
+      context: ./mcp-rust-server
+    image: mcp-sse-server-exp
+    container_name: mcp-sse-server-exp
+    ports:
+      - "8001:8000"  # Map host 8001 to container 8000
+    restart: unless-stopped
+
+  # Example for a Python client service (uncomment and configure if needed)
+  # python-client:
+  #   build:
+  #     context: ./mcp-python-server-client
+  #   image: mcp-python-client
+  #   container_name: mcp-python-client
+  #   environment:
+  #     - SERVER_URL=http://rust-server:8000/sse
+  #   depends_on:
+  #     - rust-server
+  #   command: ["uv", "run", "python", "src/mcp_py_client_rust_server_sse.py"]

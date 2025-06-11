@@ -11,7 +11,7 @@ from mcp.client.sse import sse_client
 async def main():
     # The URL where the Rust SSE server is listening.
     # The sse_client requires the full endpoint, which is typically /mcp.
-    server_url = "http://127.0.0.1:8000/sse"
+    server_url = "http://127.0.0.1:8001/sse"
 
     # Use the sse_client context manager with the server URL
     async with sse_client(server_url) as (read, write):
@@ -20,6 +20,7 @@ async def main():
 
             # List available tools
             tools = await session.list_tools()
+
             print("Tools:", tools)
 
             # Call the 'add' tool

@@ -26,7 +26,7 @@ async def main():
     # The client library will handle appending the correct /sse endpoint.
     client = MultiServerMCPClient({
         "rust_server": {
-            "url": "http://127.0.0.1:8000/sse",
+            "url": "http://127.0.0.1:8001/sse",
             "transport": "sse"
         }
     })
