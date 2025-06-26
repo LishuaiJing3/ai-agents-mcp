@@ -7,32 +7,39 @@ import openai
 
 # Load .env file
 load_dotenv()
-
-# Set OpenAI API key
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 async def main():
-    # Start the MCP client with a math tool
     client = MultiServerMCPClient({
         "math": {
             "command": "python",
-            "args": ["src/demo_server.py"],  # Your MCP server file
+            "args": ["src/demo_server.py"],
             "transport": "stdio"
         }
     })
 
-    # Load tools provided by the MCP server
     tools = await client.get_tools()
+    print(f"Fetched {len(tools)} tools from MCP server.")
+    for tool in tools:
+        print(f"- {tool.name}")
 
-    # Create the ReAct agent using GPT-4o and the tools
     agent = create_react_agent("openai:gpt-4o", tools)
 
-    # Send a message to the agent
-    response = await agent.ainvoke({
-        "messages": [{"role": "user", "content": "What is 2 + 2?"}]
-    })
+    prompts = [
+        ("about_info", "Call the 'about_info' tool."),
+        ("analysis_scan", "Call the 'analysis_scan' tool on path '../' with display 'matrix'."),
+        ("security_scan", "Call the 'security_scan' tool on path '../'."),
+        ("dependency_scan", "Call the 'dependency_scan' tool on path '../'.")
+    ]
 
-    print(response)
+    for tool_name, prompt in prompts:
+        print(f"\nInvoking agent to call '{tool_name}'...")
+        response = await agent.ainvoke({
+            "messages": [
+                {"role": "user", "content": prompt}
+            ]
+        })
+        print(f"Result for '{tool_name}':")
+        print(response)
 
-# Run the async function
 asyncio.run(main())

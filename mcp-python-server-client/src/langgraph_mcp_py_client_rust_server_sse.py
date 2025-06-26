@@ -55,20 +55,25 @@ async def main():
     llm = ChatOpenAI(model="gpt-4o")
     agent_executor = create_react_agent(llm, tools)
 
-    # Ask a question that will invoke one of the tools from our Rust server
-    user_query = "Can you add 3 and 5 for me?"
-    print(f"\nInvoking agent with query: '{user_query}'")
+    prompts = [
+        ("about_info", "Call the 'about_info' tool."),
+        ("analysis_scan", "Call the 'analysis_scan' tool on path '../' with display 'matrix'."),
+        ("security_scan", "Call the 'security_scan' tool on path '../'."),
+        ("dependency_scan", "Call the 'dependency_scan' tool on path '../'.")
+    ]
 
-    # The input to the agent is a dictionary with a 'messages' key
-    input_data = {"messages": [{"role": "user", "content": user_query}]}
+    for tool_name, prompt in prompts:
+        print(f"\nInvoking agent to call '{tool_name}'...")
+        # The input to the agent is a dictionary with a 'messages' key
+        input_data = {"messages": [{"role": "user", "content": prompt}]}
 
-    response = await agent_executor.ainvoke(input_data)
+        response = await agent_executor.ainvoke(input_data)
 
-    print("\n--- Agent Final Response ---")
-    # The final response is in the 'messages' list, with the last message being from the 'assistant'
-    final_message = response['messages'][-1]
-    print(final_message.content)
-    print("--------------------------")
+        print(f"Result for '{tool_name}':")
+        # The final response is in the 'messages' list, with the last message being from the 'assistant'
+        final_message = response['messages'][-1]
+        print(final_message.content)
+        print("--------------------------")
 
 
 if __name__ == "__main__":
